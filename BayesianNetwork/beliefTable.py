@@ -1,6 +1,8 @@
 class BeliefTable(object):
 
     def __init__(self, variables, table):
+        # variables = a list of strings (names of variables)
+        # table = a list of list of float (representing a table)
         self.variables = variables
         self.table = table
 
@@ -13,8 +15,8 @@ class BeliefTable(object):
 
 
 def getJoint2(table1, table2):
-    # table1 = prob di prima variabile
-    # table2 = prob condizionata
+    # table1 = prob first variable
+    # table2 = conditioned prob
     t = []
     k = 0
     for i in table1.table:
@@ -24,9 +26,9 @@ def getJoint2(table1, table2):
 
 
 def getJoint3(table1, table2, table3):
-    # table1 = prob di prima variabile
-    # table2 = prob di seconda variabile
-    # table3 = prob condizionata
+    # table1 = prob first variable
+    # table2 = prob second variable
+    # table3 = conditioned prob
     t = []
     k = 0
     for i in table1.table:
@@ -37,8 +39,8 @@ def getJoint3(table1, table2, table3):
 
 
 def marginalize(table, variable):
-    # table = joint table
-    # variable = nome di una variabile
+    # table = a belief joint table
+    # variable = a string (name of a variable)
     index = table.variables.index(variable)
     t = []
     sum1 = 0
