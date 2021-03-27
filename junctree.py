@@ -1,4 +1,5 @@
 import beliefTable
+from random import randint
 
 
 class Cluster(object):
@@ -41,10 +42,6 @@ class Cluster(object):
     def sendMessage(self, receiver):
         if receiver.separator:
             receiver.old_table = receiver.table
-            '''vs = []
-            for i in (self.table).variables:
-                if i not in receiver.variables:
-                    vs.append(i)'''
             tmp_vs = receiver.variables
             for i in range(len(tmp_vs)):
                 if tmp_vs[i] == 'cancer1' or tmp_vs[i] == 'cancer2':
@@ -96,20 +93,14 @@ class JunctionTree(object):
         for var in variables:
             v = next(value)
             for cluster in self.clusters:
-                if var in cluster.variables:  # and not cluster.separator:
+                if var in cluster.variables:
                     cluster.table.putEvidence(variable=var, value=v)
         self.collectEvidence()
         self.distributeEvidence()
         return True
 
     def collectEvidence(self):
-        if self.name == 'asia':
-            pos = 6
-        elif self.name == 'cancer':
-            pos = 0
-        else:
-            pos = 0
-        self.clusters[pos].setRoot()
+        self.clusters[0].setRoot()
         for c in self.clusters:
             if len(c.neighbours) == 1 and not c.root:
                 c.collect()
@@ -128,28 +119,10 @@ class JunctionTree(object):
                     prob.append(beliefTable.marginalize(c.table, v))
                     break
         if len(prob) == len(variables):
-            '''div = 1
-            for i in self.evidences:
-                if i[1]:
-                    pos = 0
-                else:
-                    pos = 1
-                for c in self.clusters:
-                    if i[0] in c.variables:
-                        div *= beliefTable.marginalize(c.table, i[0]).table[0][pos]
-                        break'''
-
             for t in prob:
                 div = t.table[0][0] + t.table[0][1]
                 for j in range(2):
-                    t.table[0][j] *= 1 / div
-            '''for c in self.clusters:
-                if vEv in c.variables:
-                    c = beliefTable.marginalize(c.table, vEv).table[0][pos]
-                    for i in range(len(joint.table)):
-                        for j in range(2):
-                            joint.table[i][j] = joint.table[i][j] / c
-                    return joint'''
+                    t.table[0][j] /= div
             return prob
         print("Error")
 
@@ -218,7 +191,7 @@ evidences = [False, True, True]
 model.setEvidence(variables, evidences)
 
 prob = model.getProb(['asia', 'bronc', 'dysp', 'either', 'lung', 'smoke', 'tub', 'xray'])
-
+print('evidences: ' + str(model.evidences))
 for p in prob:
     p.print()
 
@@ -232,7 +205,7 @@ evidences = [False, True]
 model.setEvidence(variables, evidences)
 
 prob = model.getProb(['cancer', 'dyspnea', 'pollution', 'smoker', 'xray'])
-
+print('evidences: ' + str(model.evidences))
 for p in prob:
     p.print()
 
@@ -241,11 +214,11 @@ print('SPRINKLER:')
 
 model = getJT('sprinkler')
 
-variables = ['cloudy', 'rain']
+variables = ['cloudy', 'wet_grass']
 evidences = [True, True]
 model.setEvidence(variables, evidences)
 
 prob = model.getProb(['cloudy', 'rain', 'sprinkler', 'wet_grass'])
-
+print('evidences: ' + str(model.evidences))
 for p in prob:
     p.print()

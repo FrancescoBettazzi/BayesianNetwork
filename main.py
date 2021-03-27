@@ -101,13 +101,13 @@ def getClustersBTs(model):
         tables['either, bronc'] = [0.0005, 0.0095]
 
 ## Asia model, p(L|A=1,S=0,D=1)
-# asia = dict(bnlearn.import_DAG('asia.bif'))
+asia = dict(bnlearn.import_DAG('asia'))
 ## G1 = bnlearn.plot(model)
-# junctionBTs = dict(getJunctionBTs(asia))  # asia['model'].cpds.values
+#junctionBTs = dict(getJunctionBTs(asia))  # asia['model'].cpds.values
 # table = mulBF([junctionBTs['asia'], junctionBTs['tub | asia']])
 # table2 = mulBF([])
 # clusterBTs = getClustersBTs('asia')
-# q1 = bnlearn.inference.fit(asia, variables=['tub'], evidence={'asia':0})
+q1 = bnlearn.inference.fit(asia, variables=['bronc'], evidence={'asia':1,'smoke':0, 'dysp':0})
 
 ## Sprinkler model, p(S|W=1)
 # sprinkler = dict(bnlearn.import_DAG('sprinkler'))
