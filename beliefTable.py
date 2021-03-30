@@ -1,12 +1,11 @@
 class BeliefTable(object):
 
-    def __init__(self, variables, table, joint=False):
+    def __init__(self, variables, table):
         # variables = a list of strings (names of variables)
         # table = a list of list of float (representing a table)
         # conditioned = a boolean (for separate joint prob from conditioned prob)
         self.variables = variables
         self.table = table
-        self.joint = joint
 
     def putEvidence(self, variable, value):
         # variable: variable name (string)
@@ -18,10 +17,10 @@ class BeliefTable(object):
                     pos = 1
                 else:
                     pos = 0
-                for i in self.table:
-                    i[pos] = 0
+                for i in range(len(self.table)):
+                    self.table[i][pos] = 0
             else:
-                count = len(self.variables) - index
+                count = 2 ** (len(self.variables) - index - 1)
                 for i in range(len(self.table)):
                     if count > 0:
                         if not value:
@@ -33,19 +32,8 @@ class BeliefTable(object):
                             self.table[i][0] = 0
                             self.table[i][1] = 0
                         count -= 1
-                        if count == -(len(self.variables) - index):
-                            count = len(self.variables) - index
-
-    def print(self):
-        table = self.table
-        for i in range(len(table)):
-            for j in range(2):
-                table[i][j] = round(table[i][j] * 100, 2)
-        s = ''
-        for i in self.variables:
-            s = s + i + ', '
-        s = s[:len(s) - 2]
-        print(s + ': ' + str(table))
+                        if count == -(2 ** (len(self.variables) - index - 1)):
+                            count = 2 ** (len(self.variables) - index - 1)
 
 
 def marginalize(table, variable):
@@ -62,7 +50,7 @@ def marginalize(table, variable):
         t.append(sum1)
         t.append(sum2)
     else:
-        count = len(table.variables) - index
+        count = 2 ** (len(table.variables) - index - 1)
         for i in range(len(table.table)):
             if count > 0:
                 sum1 += table.table[i][0] + table.table[i][1]
@@ -70,11 +58,11 @@ def marginalize(table, variable):
             else:
                 sum2 += table.table[i][0] + table.table[i][1]
                 count -= 1
-                if count == -(len(table.variables) - index):
-                    count = len(table.variables) - index
+                if count == -(2 ** (len(table.variables) - index - 1)):
+                    count = 2 ** (len(table.variables) - index - 1)
         t.append(sum1)
         t.append(sum2)
-    return BeliefTable(variables=[variable], table=[t], joint=True)
+    return BeliefTable(variables=[variable], table=[t])
 
 
 def marginalizeMSG(table, variables):
@@ -90,17 +78,13 @@ def marginalizeMSG(table, variables):
         elif variables[0] == table.variables[0] and variables[1] == table.variables[2]:
             t.append([table.table[0][0] + table.table[2][0], table.table[0][1] + table.table[2][1]])
             t.append([table.table[1][0] + table.table[3][0], table.table[1][1] + table.table[3][1]])
-        elif variables[0] == table.variables[1] and variables[1] == table.variables[0]:
-            variables[0], variables[1] = variables[1], variables[0]
-            return marginalizeMSG(table, variables)
         elif variables[0] == table.variables[1] and variables[1] == table.variables[2]:
             t.append([table.table[0][0] + table.table[0][1], table.table[2][0] + table.table[2][1]])
             t.append([table.table[1][0] + table.table[1][1], table.table[3][0] + table.table[3][1]])
             return BeliefTable(variables=variables, table=t)
-        elif variables[0] == table.variables[2] and variables[1] == table.variables[0]:
-            variables[0], variables[1] = variables[1], variables[0]
-            return marginalizeMSG(table, variables)
-        elif variables[0] == table.variables[2] and variables[1] == table.variables[1]:
+        elif (variables[0] == table.variables[1] and variables[1] == table.variables[0]) or (
+                variables[0] == table.variables[2] and variables[1] == table.variables[0]) or (
+                variables[0] == table.variables[2] and variables[1] == table.variables[1]):
             variables[0], variables[1] = variables[1], variables[0]
             return marginalizeMSG(table, variables)
     return BeliefTable(variables=variables, table=t)
@@ -274,7 +258,7 @@ def multiplyBTs(table1, table2):
             t.append([table2.table[1][0] * table1.table[1][0], table2.table[1][0] * table1.table[3][0]])
             t.append([table2.table[2][0] * table1.table[0][1], table2.table[2][0] * table1.table[2][1]])
             t.append([table2.table[3][0] * table1.table[1][1], table2.table[3][0] * table1.table[3][1]])
-            t.append([table2.table[0][0] * table1.table[0][0], table2.table[0][1] * table1.table[2][0]])
+            t.append([table2.table[0][1] * table1.table[0][0], table2.table[0][1] * table1.table[2][0]])
             t.append([table2.table[1][1] * table1.table[1][0], table2.table[1][1] * table1.table[3][0]])
             t.append([table2.table[2][1] * table1.table[0][1], table2.table[2][1] * table1.table[2][1]])
             t.append([table2.table[3][1] * table1.table[1][1], table2.table[3][1] * table1.table[3][1]])

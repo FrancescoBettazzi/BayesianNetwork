@@ -1,5 +1,4 @@
 import beliefTable
-from random import randint
 
 
 class Cluster(object):
@@ -181,44 +180,3 @@ def getJT(name):
                      table=ts[3],
                      neighbours=[['rain', 'sprinkler']])
     return j
-
-
-print('ASIA:')
-model = getJT('asia')
-
-variables = ['asia', 'smoke', 'dysp']
-evidences = [False, True, True]
-model.setEvidence(variables, evidences)
-
-prob = model.getProb(['asia', 'bronc', 'dysp', 'either', 'lung', 'smoke', 'tub', 'xray'])
-print('evidences: ' + str(model.evidences))
-for p in prob:
-    p.print()
-
-print()
-print('CANCER:')
-
-model = getJT('cancer')
-
-variables = ['pollution', 'smoker']
-evidences = [False, True]
-model.setEvidence(variables, evidences)
-
-prob = model.getProb(['cancer', 'dyspnea', 'pollution', 'smoker', 'xray'])
-print('evidences: ' + str(model.evidences))
-for p in prob:
-    p.print()
-
-print()
-print('SPRINKLER:')
-
-model = getJT('sprinkler')
-
-variables = ['cloudy', 'wet_grass']
-evidences = [True, True]
-model.setEvidence(variables, evidences)
-
-prob = model.getProb(['cloudy', 'rain', 'sprinkler', 'wet_grass'])
-print('evidences: ' + str(model.evidences))
-for p in prob:
-    p.print()

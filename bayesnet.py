@@ -59,7 +59,7 @@ class BayesianNetwork(object):
         for var in variables:
             v = next(value)
             for node in self.nodes:
-                if var == node.name:
+                if var in node.table.variables:
                     node.table.putEvidence(variable=var, value=v)
         return True
 
@@ -104,31 +104,3 @@ def getBN(name):
         bn.addNode(name='rain', table=bts[2], parents=['cloudy'])
         bn.addNode(name='wet_grass', table=bts[3], parents=['sprinkler', 'rain'])
     return bn
-
-
-model = getBN('asia')
-variables = ['asia', 'smoke', 'dysp']
-values = [False, True, True]
-model.setEvidence(variables, values)
-
-prob = model.getProb(['asia', 'bronc', 'dysp', 'either', 'lung', 'smoke', 'tub', 'xray'])
-for p in prob:
-    p.print()
-
-model = getBN('cancer')
-variables = ['pollution', 'smoker']
-values = [False, True]
-model.setEvidence(variables,values)
-
-prob = model.getProb(['cancer', 'dyspnea', 'pollution', 'smoker', 'xray'])
-for p in prob:
-    p.print()
-
-model = getBN('sprinkler')
-variables=['cloudy','wet_grass']
-values=[True,True]
-model.setEvidence(variables,values)
-
-prob = model.getProb(['cloudy','rain','sprinkler','wet_grass'])
-for p in prob:
-    p.print()

@@ -1,120 +1,66 @@
-import bnlearn
-import numpy as np
-
-'''
-Given a Bayesian Network, put the evidence and, through message passing, get the probability
-of a random variable conditioned by evidence p(V|e).
-'''
+from tabulate import tabulate
+import bayesnet
+import junctree
 
 
-def getJunctionBTs(model):
-    tables = dict()
-    cpds = model['model'].cpds
-    for i in range(len(cpds)):
-        tables[getKey(cpds[i].variables)] = getList(cpds[i].values)
-    return tables
+def printResults(model, variables, prob, exact_prob):
+    headers = ['variable', 'prob', 'exact_prob']
+    data = []
+    var = iter(variables)
+    exact = iter(exact_prob)
+    for p in prob:
+        v = next(var)
+        ep = next(exact)
+        data.append((v, [round(p.table[0][0] * 100, 2), round(p.table[0][1] * 100, 2)],
+                     [round(ep.table[0][0] * 100, 2), round(ep.table[0][1] * 100, 2)]))
+
+    print(model.name.upper() + ': (evidences: ' + str(model.evidences) + ')')
+    print(tabulate(data, headers=headers, tablefmt='grid'))
+    print()
 
 
-def getList(ndArray):
-    tmp = list()
-    for i in range(len(ndArray)):
-        tmp.append(ndArray[i])
-    return tmp
+# GET BAYESNET AND JUNC-TREE
+asia = bayesnet.getBN('asia')
+cancer = bayesnet.getBN('cancer')
+sprinkler = bayesnet.getBN('sprinkler')
 
+asiaJT = junctree.getJT('asia')
+cancerJT = junctree.getJT('cancer')
+sprinklerJT = junctree.getJT('sprinkler')
 
-def getKey(variables):
-    n = str(variables[0]) + ' |'
-    c = False
-    for i in range(1, len(variables)):
-        c = True
-        n = n + ' ' + str(variables[i]) + ','
-    if c:
-        n = n[:len(n) - 1]
-    else:
-        n = n[:len(n) - 2]
-    return n
+# SET EVIDENCES
+variables = ['asia', 'smoke', 'dysp']
+evidences = [False, True, True]
 
+asia.setEvidence(variables, evidences)
+asiaJT.setEvidence(variables, evidences)
 
-def printTables(table):
-    for i in table.keys():
-        print(i + ':')
-        print(table[i])
-        print()
+variables = ['pollution', 'smoker']
+evidences = [False, True]
 
+cancer.setEvidence(variables, evidences)
+cancerJT.setEvidence(variables, evidences)
 
-def mulBF(tables):
-    t = list()
-    if len(tables) == 2:
-        t1 = tables[0]
-        t2 = tables[1]
-        for i in range(len(t1)):
-            tmp = list()
-            for j in range(len(t2)):
-                tmp.append(t2[j][i] * t1[i])
-            t.append(tmp)
-    elif len(tables) == 3:
-        t1 = tables[0]
-        t2 = tables[1]
-        t3 = tables[3]
-        for i in range(len(t1)):
-            for j in range(t2):
-                tmp = list()
-                for k in range(len(t3)):
-                    tmp.append(t3[k][i] * t2[j] * t1[i])
-                t.append(tmp)
-    return t
+variables = ['cloudy', 'wet_grass']
+evidences = [True, True]
 
+sprinkler.setEvidence(variables, evidences)
+sprinklerJT.setEvidence(variables, evidences)
 
-def marginalize(table, first=True):
-    t = list()
-    if first:
-        for i in range(2):
-            sum = 0
-            for j in range(len(table)):
-                sum += table[j][i]
-            t.append(sum)
-    else:
-        for j in range(len(table)):
-            sum = 0
-            for i in range(2):
-                sum += table[j][i]
-            t.append(sum)
-    return t
+# GET PROBABILITIES
+asia_variables = ['asia', 'bronc', 'dysp', 'either', 'lung', 'smoke', 'tub', 'xray']
+cancer_variables = ['cancer', 'dyspnea', 'pollution', 'smoker', 'xray']
+sprinkler_variables = ['cloudy', 'rain', 'sprinkler', 'wet_grass']
 
+prob_asia = asiaJT.getProb(asia_variables)
+prob_cancer = cancerJT.getProb(cancer_variables)
+prob_sprinkler = sprinklerJT.getProb(sprinkler_variables)
 
-def getClustersBTs(model):
-    tables = dict()
-    if model == 'asia':
-        tables['asia, tub'] = [(0.0005, 0.0095), (0.0099, 0.981)]
-        a = tables['asia, tub'][0]
-        b = tables['asia, tub'][0][0]
-        tables['either, xray'] = [0.0005, 0.0095]
-        tables['tub, either, lung'] = [0.0005, 0.0095]
-        tables['either, lung, smoke'] = [0.0005, 0.0095]
-        tables['either, smoke, bronc'] = [0.0005, 0.0095]
-        tables['either, bronc, dysp'] = [0.0005, 0.0095]
+exactProb_asia = asia.getProb(asia_variables)
+exactProb_cancer = cancer.getProb(cancer_variables)
+exactProb_sprinkler = sprinkler.getProb(sprinkler_variables)
 
-        tables['tub'] = [0.0005, 0.0095]
-        tables['either'] = [0.0005, 0.0095]
-        tables['either, lung'] = [0.0005, 0.0095]
-        tables['either, smoke'] = [0.0005, 0.0095]
-        tables['either, bronc'] = [0.0005, 0.0095]
-
-## Asia model, p(L|A=1,S=0,D=1)
-asia = dict(bnlearn.import_DAG('asia'))
-## G1 = bnlearn.plot(model)
-#junctionBTs = dict(getJunctionBTs(asia))  # asia['model'].cpds.values
-# table = mulBF([junctionBTs['asia'], junctionBTs['tub | asia']])
-# table2 = mulBF([])
-# clusterBTs = getClustersBTs('asia')
-q1 = bnlearn.inference.fit(asia, variables=['bronc'], evidence={'asia':1,'smoke':0, 'dysp':0})
-
-## Sprinkler model, p(S|W=1)
-# sprinkler = dict(bnlearn.import_DAG('sprinkler'))
-##G2 = bnlearn.plot(sprinkler)
-# q2 = bnlearn.inference.fit(sprinkler, variables=['Sprinkler'], evidence={'Wet_Grass': 1})
-
-## Cancer model, p(C|S=0,P=1)
-# cancer = dict(bnlearn.import_DAG('cancer.bif'))
-## G3 = bnlearn.plot(model3)
-# q3 = bnlearn.inference.fit(cancer, variables=['Cancer'], evidence={'Smoker': 0, 'Pollution': 1})
+# PRINT
+printResults(asia, asia_variables, prob_asia, exactProb_asia)
+printResults(cancer, cancer_variables, prob_cancer, exactProb_cancer)
+printResults(sprinkler, sprinkler_variables, prob_sprinkler, exactProb_sprinkler)
