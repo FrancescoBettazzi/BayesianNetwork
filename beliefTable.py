@@ -68,6 +68,14 @@ def marginalize(table, variable):
 def marginalizeMSG(table, variables):
     # table: BT
     # variables: array of variables (strings)
+    '''
+    # MODO1: GENERALE CHE GENERA PIU' ERRORI
+    t=marginalize(table, variables[0])
+    for v in variables[1:]:
+        t=multiplyBTs(t,marginalize(table,v))
+    return t
+    '''
+    # MODO2: VALE SOLO PER 2 VARIABILI MA E' PIU' PRECISO
     t = []
     if len(variables) == 1:
         return marginalize(table, variables[0])
